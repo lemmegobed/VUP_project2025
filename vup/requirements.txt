@@ -1,0 +1,6 @@
+django
+channels
+mysqlclient
+Pillow
+daphne
+django-apscheduler
