@@ -1,46 +1,24 @@
-body,html{
-    font-family:"Anuphan", sans-serif;
-}
-
-
-
 .calendar-notification {
-    display: block;
-    min-width: 300px;
-    min-height: 100vh; 
-    /* height: 100vh;
-    height: auto; */
-    
+    width: 200px;
+    height: 94vh;
     background-image: url('/static/pic/bg4.jpg'); 
-    background-size: cover; 
-    background-position: center; 
-    background-repeat: no-repeat; 
-    height: 100vh; 
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 
-
-    color: white; 
-    /* padding: 20px; */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
-    position: fixed; 
-    top: 0%; 
-    right: 10px; 
-    z-index: 1000; 
-    border-radius: 30px 0 0 30px;
- /* กำหนดความสูงสูงสุดของ Notification */
-    max-height: 100vh;
-    
-    /* เพิ่ม Scroll Bar เมื่อเนื้อหาเกินความสูง */
-    /* overflow-y: auto; */
-
-    /* ซ่อน Scroll Bar เริ่มต้น (ถ้าต้องการให้เลื่อนดูเฉพาะตอนเมาส์วาง) */
-    scrollbar-width: thin; /* สำหรับ Firefox */
-    scrollbar-color: #ccc #f7f7f7; /* สำหรับ Firefox */
-}
-
-@media screen and (max-width: 768px) {
-    .calendar-notification {
-        display: none; /* ซ่อนป๊อปอัพเมื่อหน้าจอเล็กกว่า 768px */
-    }
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 10px 5px;
+    position: fixed;
+    top: 0;
+    right: 0;
+    border-radius: 40px 0 0 40px;
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.2);
+    overflow-y: auto;
+    z-index: 1000;
 }
 
 /* สำหรับ Scroll Bar ของ Chrome และอื่นๆ */
@@ -61,11 +39,9 @@ body,html{
     flex-direction: column;
     align-items: center;
     /* background-color: #1c2b4a; */
-
-    
     padding: 20px;
     border-radius: 15px;
-    width: 300px;
+    width: 280px;
 }
 
 .calendar-container {

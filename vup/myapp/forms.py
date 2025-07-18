@@ -1,11 +1,9 @@
 from django import forms
 from .models import *
 from django.contrib.auth.forms import UserCreationForm, PasswordResetForm, SetPasswordForm
-
-
+from django.core.exceptions import ValidationError
 
 class MemberRegistrationForm(UserCreationForm):
-
     SEX_CHOICES = [
         ('', 'เลือก'),
         ('ชาย', 'ชาย'),
@@ -13,11 +11,56 @@ class MemberRegistrationForm(UserCreationForm):
     ]
 
     sex = forms.ChoiceField(choices=SEX_CHOICES, widget=forms.Select, required=True)
-    birthdate = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}), required=True)
+    birthdate = forms.DateField(
+        widget=forms.DateInput(
+            attrs={
+                'type': 'date',
+                'max': (date.today().replace(year=date.today().year - 18)).isoformat(),  # ปิดไม่ให้เลือกวันเกิดเกิน
+                'class': 'form-control',
+            }
+        ),
+        required=True
+    )
 
     class Meta:
         model = Member
-        fields = ('profile', 'username', 'email', 'first_name', 'last_name', 'sex', 'birthdate', 'password1', 'password2')
+        fields = (
+            'profile', 'username', 'email', 'first_name', 'last_name',
+            'sex', 'birthdate', 'password1', 'password2'
+        )
+
+    def clean_birthdate(self):
+        birthdate = self.cleaned_data.get('birthdate')
+        today = date.today()
+        age = today.year - birthdate.year - ((today.month, today.day) < (birthdate.month, birthdate.day))
+
+        if age < 18:
+            raise ValidationError("คุณต้องมีอายุอย่างน้อย 18 ปีบริบูรณ์เพื่อสมัครสมาชิก")
+
+        return birthdate
+
+class IdentityVerificationForm(forms.ModelForm):
+    class Meta:
+        model = IdentityVerification
+        fields = ['id_card_image', 'selfie_image']
+        widgets = {
+            'id_card_image': forms.ClearableFileInput(attrs={'accept': 'image/*'}),
+            'selfie_image': forms.ClearableFileInput(attrs={'accept': 'image/*'}),
+        }
+# class MemberRegistrationForm(UserCreationForm):
+
+#     SEX_CHOICES = [
+#         ('', 'เลือก'),
+#         ('ชาย', 'ชาย'),
+#         ('หญิง', 'หญิง'),
+#     ]
+
+#     sex = forms.ChoiceField(choices=SEX_CHOICES, widget=forms.Select, required=True)
+#     birthdate = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}), required=True)
+
+#     class Meta:
+#         model = Member
+#         fields = ('profile', 'username', 'email', 'first_name', 'last_name', 'sex', 'birthdate', 'password1', 'password2')
 
 class MemberUpdateForm(forms.ModelForm):
     
@@ -41,6 +84,7 @@ class MemberUpdateForm(forms.ModelForm):
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control'}),
             'description': forms.TextInput(attrs={'class': 'form-control'}),
+        
         }
 
     def __init__(self, *args, **kwargs):
@@ -147,12 +191,13 @@ CATEGORY_CHOICES = [
 class EventForm(forms.ModelForm):
     class Meta:
         model = Event
-        fields = ['event_name', 'event_title', 'event_datetime', 'location', 'category', 'max_participants', 'province']
+        fields = ['event_name', 'event_title', 'event_datetime', 'event_end_datetime','location', 'category', 'max_participants', 'province']
 
         labels = {
             'event_name': 'ชื่อกิจกรรม',
             'event_title': 'รายละเอียด',
             'event_datetime': 'วันที่ทำกิจกรรม',
+            'event_end_datetime' : 'วันที่สิ้นสุดกิจกรรม',  # <-- เพิ่มฟิลด์นี้
             'location': 'สถานที่',
             'category': 'หมวดหมู่',
             'max_participants': 'จำนวนผู้เข้าร่วมสูงสุด',
@@ -163,6 +208,7 @@ class EventForm(forms.ModelForm):
             'event_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ชื่อกิจกรรม'}),
             'event_title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'รายละเอียด'}),
             'event_datetime': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}), 
+            'event_end_datetime': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
             'location': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'สถานที่'}),
             'category': forms.Select(choices=CATEGORY_CHOICES, attrs={'class': 'form-control'}),
             'max_participants': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'จำนวนผู้เข้าร่วมสูงสุด', 'min': '1'}),

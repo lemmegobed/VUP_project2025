@@ -19,7 +19,8 @@ class Member(AbstractUser):
     sex = models.CharField(max_length=10)
     birthdate = models.DateField(blank=True, null=True) 
     description = models.CharField(max_length=50, blank=True, null=True,default='เพิ่มคำอธิบายของคุณ')
-    
+
+
     @property
     def age(self):
         if self.birthdate:
@@ -37,29 +38,49 @@ class Member(AbstractUser):
     def __str__(self):
         return self.username
 
+class IdentityVerification(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'รอตรวจสอบ'),
+        ('approved', 'ผ่านการตรวจสอบ'),
+        ('rejected', 'ไม่ผ่าน'),
+    ]
+
+    user = models.OneToOneField(Member, on_delete=models.CASCADE)
+    # id_card_image= models.FileField(upload_to='id_documents/', verbose_name="ภาพเอกสารทางราชการ")
+    # selfie_image = models.ImageField(upload_to='id_documents/selfie/', verbose_name="ภาพเซลฟี่พร้อมเอกสาร")
+    id_card_image = models.ImageField(upload_to='id_documents/', blank=True, null=True)
+    selfie_image = models.ImageField(upload_to='id_documents/selfie/', blank=True, null=True)
+
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    reviewer_note = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"ID Verification for {self.user.username} ({self.status})"
 
 class Event(models.Model):
     event_name = models.CharField(max_length=50)
     event_title = models.CharField(max_length=100)
-    event_datetime = models.DateTimeField()
+    event_datetime = models.DateTimeField()  # เริ่มกิจกรรม
+    event_end_datetime = models.DateTimeField(null=True, blank=True)  
     location = models.CharField(max_length=50)
     category = models.CharField(max_length=15)
-    province = models.CharField(max_length=20,)
-    created_at = models.DateTimeField(default=timezone.now) 
+    province = models.CharField(max_length=20)
+    created_at = models.DateTimeField(default=now)
     created_by = models.ForeignKey(Member, on_delete=models.CASCADE, related_name="events")
     max_participants = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
     has_ended = models.BooleanField(default=False)
-    
 
     def __str__(self):
         return self.event_name
-    
+
     @property
     def time_since(self):
         delta = now() - self.created_at
         seconds = int(delta.total_seconds())
-        
+
         if seconds < 60:
             return "ตอนนี้"
         elif seconds < 3600:
@@ -70,9 +91,45 @@ class Event(models.Model):
             return f"{seconds // 86400} วัน"
         else:
             return f"{seconds // 31536000} ปี"
-    
+
     class Meta:
         ordering = ['-created_at']
+
+# class Event(models.Model):
+#     event_name = models.CharField(max_length=50)
+#     event_title = models.CharField(max_length=100)
+#     event_datetime = models.DateTimeField()
+#     location = models.CharField(max_length=50)
+#     category = models.CharField(max_length=15)
+#     province = models.CharField(max_length=20,)
+#     created_at = models.DateTimeField(default=timezone.now) 
+#     created_by = models.ForeignKey(Member, on_delete=models.CASCADE, related_name="events")
+#     max_participants = models.PositiveIntegerField(default=0)
+#     is_active = models.BooleanField(default=True)
+#     has_ended = models.BooleanField(default=False)
+    
+
+#     def __str__(self):
+#         return self.event_name
+    
+#     @property
+#     def time_since(self):
+#         delta = now() - self.created_at
+#         seconds = int(delta.total_seconds())
+        
+#         if seconds < 60:
+#             return "ตอนนี้"
+#         elif seconds < 3600:
+#             return f"{seconds // 60} นาที"
+#         elif seconds < 86400:
+#             return f"{seconds // 3600} ชั่วโมง"
+#         elif seconds < 31536000:
+#             return f"{seconds // 86400} วัน"
+#         else:
+#             return f"{seconds // 31536000} ปี"
+    
+#     class Meta:
+#         ordering = ['-created_at']
 
 
 class Event_Request(models.Model):

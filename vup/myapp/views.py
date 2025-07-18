@@ -354,11 +354,13 @@ def profile_view(request):
 
     # ฟอร์มแก้ไขโปรไฟล์
     if request.method == 'POST':
-        if 'update_profile' in request.POST:  # ตรวจสอบว่ามาจากการอัปเดตโปรไฟล์
+        event_form = EventForm()  # 🔧 กำหนดไว้ก่อนทุกกรณี ป้องกัน UnboundLocalError
+
+        if 'update_profile' in request.POST:
             form = MemberUpdateForm(request.POST, request.FILES, instance=member_data)
             if form.is_valid():
                 form.save()  
-                return redirect('profile')  
+                return redirect('profile')
 
         elif 'event_submit' in request.POST:  
             event_id = request.POST.get('event_id')
@@ -366,14 +368,12 @@ def profile_view(request):
                 event = get_object_or_404(Event, id=event_id, created_by=request.user)
                 event_form = EventForm(request.POST, instance=event)
 
-
-            if event_form.is_valid():
-                event_form.save()
-                return redirect('profile')
-
+                if event_form.is_valid():
+                    event_form.save()
+                    return redirect('profile')
     else:
-        form = MemberUpdateForm(instance=member_data)  
-        event_form = EventForm()  
+        form = MemberUpdateForm(instance=member_data)
+        event_form = EventForm()
 
     context = {
         'member_data': member_data,
@@ -390,7 +390,78 @@ def profile_view(request):
     }
     return render(request, 'member/profile.html', context)
 
+# def profile_view(request):
+#     member_data = Member.objects.get(username=request.user.username) 
+    
+#     # ดึงกิจกรรมที่ผู้ใช้สร้าง
+#     events = Event.objects.filter(created_by=request.user, is_active=True)
+#     total_events = events.count()
 
+#     total_joined_events = Event_Request.objects.filter(sender=member_data, response_status='accepted').count()
+
+#     total_on_time_reviews = Event_Review.objects.filter(participant=member_data, attendance_status='มาตามนัด')
+#     total_not_on_time_reviews = Event_Review.objects.filter(participant=member_data, attendance_status='ผิดนัด')
+
+
+#     # ฟอร์มแก้ไขโปรไฟล์
+#     if request.method == 'POST':
+#         if 'update_profile' in request.POST:  # ตรวจสอบว่ามาจากการอัปเดตโปรไฟล์
+#             form = MemberUpdateForm(request.POST, request.FILES, instance=member_data)
+#             if form.is_valid():
+#                 form.save()  
+#                 return redirect('profile')  
+
+#         elif 'event_submit' in request.POST:  
+#             event_id = request.POST.get('event_id')
+#             if event_id:  
+#                 event = get_object_or_404(Event, id=event_id, created_by=request.user)
+#                 event_form = EventForm(request.POST, instance=event)
+
+
+#             if event_form.is_valid():
+#                 event_form.save()
+#                 return redirect('profile')
+
+#     else:
+#         form = MemberUpdateForm(instance=member_data)  
+#         event_form = EventForm()  
+
+#     context = {
+#         'member_data': member_data,
+#         'events': events,
+#         'total_events': total_events,  
+#         'total_joined_events':total_joined_events,
+#         'total_on_time_reviews': total_on_time_reviews,
+#         'total_not_on_time_reviews': total_not_on_time_reviews,  
+#         # 'active_events': active_events,  
+#         # 'active_events_count': active_events_count,
+#         'form': form,
+#         'event_form': event_form,  # ฟอร์มสร้าง/แก้ไขกิจกรรม
+#         "provinces": PROVINCES
+#     }
+#     return render(request, 'member/profile.html', context)
+
+@login_required
+def upload_identity(request):
+    try:
+        instance = IdentityVerification.objects.get(user=request.user)
+    except IdentityVerification.DoesNotExist:
+        instance = None
+
+    if request.method == 'POST':
+        form = IdentityVerificationForm(request.POST, request.FILES, instance=instance)
+        if form.is_valid():
+            identity = form.save(commit=False)
+            identity.user = request.user
+            identity.status = 'pending'
+            identity.submitted_at = timezone.now()
+            identity.save()
+            messages.success(request, 'ส่งเอกสารเรียบร้อยแล้ว ระบบจะตรวจสอบภายใน 1–2 วันทำการ')
+            return redirect('profile')  # ชื่อ URL name ของหน้าโปรไฟล์
+    else:
+        form = IdentityVerificationForm(instance=instance)
+
+    return render(request, 'identity/upload.html', {'form': form})
 @login_required
 def member_profile(request, member_id):
     member = get_object_or_404(Member, id=member_id)
@@ -739,3 +810,81 @@ def user_events_api(request):
 def logout_view(request):
     logout(request) 
     return redirect('login')  
+
+
+import os
+import google_auth_oauthlib.flow
+from googleapiclient.discovery import build
+from django.shortcuts import redirect, render
+from django.http import HttpResponse
+from django.conf import settings
+from google.oauth2.credentials import Credentials
+import pickle
+
+# ปรับ path ตามตำแหน่งไฟล์ credentials.json ของคุณ
+CLIENT_SECRET_FILE = os.path.join(settings.BASE_DIR, 'credentials.json')
+SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
+
+def google_calendar_auth(request):
+    # Step 1: Redirect user to Google's OAuth 2.0 consent screen
+    flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
+        CLIENT_SECRET_FILE, scopes=SCOPES
+    )
+    flow.redirect_uri = request.build_absolute_uri('/oauth2callback/')  # ตั้งค่าที่จะรับ callback
+
+    authorization_url, state = flow.authorization_url(
+        access_type='offline', prompt='consent'
+    )
+
+    request.session['state'] = state  # เก็บ state ใน session เพื่อใช้ใน callback
+
+    return redirect(authorization_url)
+
+def oauth2callback(request):
+    # Step 2: Retrieve the authorization code and exchange it for credentials
+    state = request.session['state']
+    flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
+        CLIENT_SECRET_FILE, scopes=SCOPES, state=state
+    )
+    flow.redirect_uri = request.build_absolute_uri('/oauth2callback/')
+
+    # รับ authorization code
+    authorization_response = request.build_absolute_uri(request.get_full_path())
+    flow.fetch_token(authorization_response=authorization_response)
+
+    # Step 3: Get the credentials and save them
+    credentials = flow.credentials
+    # Save credentials for future use
+    with open('token.pkl', 'wb') as token:
+        pickle.dump(credentials, token)
+
+    return HttpResponse("You are now authenticated!")
+
+def get_google_calendar_events(request):
+    # Step 4: Load credentials and access Google Calendar API
+    credentials = None
+    if os.path.exists('token.pkl'):
+        with open('token.pkl', 'rb') as token:
+            credentials = pickle.load(token)
+
+    if not credentials or not credentials.valid:
+        if credentials and credentials.expired and credentials.refresh_token:
+            credentials.refresh(Request())
+        else:
+            return redirect('google_calendar_auth')
+
+    service = build('calendar', 'v3', credentials=credentials)
+    events_result = service.events().list(
+        calendarId='primary', timeMin='2025-07-01T00:00:00Z', maxResults=10,
+        singleEvents=True, orderBy='startTime').execute()
+
+    events = events_result.get('items', [])
+
+    if not events:
+        return HttpResponse('No upcoming events found.')
+
+    event_list = ''
+    for event in events:
+        event_list += f"{event['summary']} ({event['start']['dateTime']})<br>"
+
+    return HttpResponse(event_list)

@@ -50,10 +50,35 @@
     </div>
 
     <div class="outer-box-profile">
-        <div class="profile-header">
-            <i class="fa-solid fa-chevron-left back-icon"></i>
-            <p class="my_profile_head">{{ member.username }}</p>
-        </div>
+<div class="profile-header-bar">
+    <div class="profile-header">
+        <i class="fa-solid fa-chevron-left back-icon"></i>
+        <p class="my_profile_head">{{ member.username }}</p>
+    </div>
+
+    <div class="upload_verify_id">
+        {% if member.identityverification %}
+            {% if member.identityverification.status == 'pending' %}
+                <span class="status-badge pending">
+                    <i class="fa-solid fa-clock"></i> อยู่ระหว่างตรวจสอบ
+                </span>
+            {% elif member.identityverification.status == 'approved' %}
+                <span class="status-badge approved">
+                    <i class="fa-solid fa-circle-check"></i> ยืนยันตัวตนแล้ว
+                </span>
+            {% elif member.identityverification.status == 'rejected' %}
+                <span class="status-badge rejected">
+                    <i class="fa-solid fa-xmark"></i> เอกสารถูกปฏิเสธ
+                </span>
+            {% endif %}
+        {% else %}
+            <span class="status-badge not-uploaded">
+                <i class="fa-solid fa-triangle-exclamation"></i> ยังไม่ยืนยันตัวตน
+            </span>
+        {% endif %}
+    </div>
+</div>
+
         
                
         <div class="inner-box">
@@ -192,15 +217,22 @@
                                     <div class="modal-icon">
                                         <i class="fa-solid fa-exclamation-circle"></i>
                                     </div>
-                                    <p>คุณต้องการส่งคำขอคำเข้ารวมกิจกรรมนี้ใช่ไหม?</p>
-                                    <div class="popup-actions">
-                                        <button class="popup-btn confirm-btn" onclick="confirmJoin()">
-                                            <i class="fa-solid fa-check"></i>ใช่
-                                        </button>
-                                        <button class="popup-btn cancel-btn" onclick="closeJoinPopup()">
-                                            <i class="fa-solid fa-times"></i>ไม่
-                                        </button>
-                                    </div>
+                                       <h3>คำเตือนความปลอดภัย</h3>
+                            <div class="warning_join">
+                                <div class="disclaimer">
+                                    <strong>กรุณาตรวจสอบกิจกรรมและผู้จัดให้รอบคอบก่อนเข้าร่วม</strong>
+                                    <br>ระบบจะไม่รับผิดชอบต่อเหตุการณ์ใด ๆ ที่เกิดขึ้นนอกระบบ
+                                </div>
+                            </div>
+
+                            <div class="popup-actions">
+                                <button class="popup-btn confirm-btn" onclick="confirmJoin()">
+                                    <i class="fa-solid fa-check"></i>ส่งคำขอ
+                                </button>
+                                <button class="popup-btn cancel-btn" onclick="closeJoinPopup()">
+                                    <i class="fa-solid fa-times"></i>ยกเลิก
+                                </button>
+                            </div>
                                 </div>
                             </div>
                             

@@ -1,3 +1,5 @@
+
+
 <style>
   .head {
         display: flex;
@@ -7,7 +9,8 @@
         align-items: center; 
         /* height: 80px;  */
         /* background-color: #dddddd; */
-        margin-left: 200px;
+        margin-left: 130px;
+        margin-bottom: 20px;
     }
 
     .head-text {
@@ -15,31 +18,27 @@
         justify-content: center;     
         align-items: center;      
         font-weight: bold;
-        font-size: 24px;
+        font-size: 20px;
         text-align: center;         
         height: 100%; 
         margin: 0;     
-        margin-top: 10px;
-        margin-bottom: 10px;
+        margin-top: 0px;
+        margin-bottom: 0px;
     }
 
-    /* Style for the icon */
     .head i {
-        margin-right: 10px; /* Space between the icon and text */
-        font-size: 24px; /* Adjust icon size if necessary */
+        margin-right: 10px; 
+        font-size: 24px; 
     }
 
     form {
         display: flex;
         flex-direction: column;
-        /* gap: 5px; */
-        /* align-items: flex-start;  */
-        margin: 0;
+        margin-top: 10px;
     }
 
-    form label {
-        font-weight: bold;
-        font-size: 15px;
+    form p {
+        margin: 8px 0;  
     }
 
     form input, form select {
@@ -47,15 +46,24 @@
         padding: 5px;
         border-radius: 30px;
         border: 1px solid #ccc;
-        font-size: 14px;
+        font-size: 12px;
         margin-bottom: 0px; 
-        background-color: #dddddd;
+        background-color: #e3e7ec;
+        
     }
 
+
+    form label {
+        font-weight: bold;
+        font-size: 14px;
+    }
+
+
     form button.btn {
+        font-family:"Anuphan", sans-serif;
         background-color: #0f3463;
         color: white;
-        padding: 15px 20px;
+        padding: 15px 15px;
         border: none;
         border-radius: 30px;
         cursor: pointer;
@@ -64,7 +72,7 @@
         justify-content: center;
         width: 30%;
         font-weight: bold;
-        font-size: 18px;
+        font-size: 16px;
         margin-left: auto; 
         margin-right: auto; 
         margin-top: 15px;
@@ -75,7 +83,37 @@
     }
 
 
-    
+    .modal-content {
+        width: 400px;
+        max-width: 90vw;
+        margin: auto;
+        background-color: rgb(255, 255, 255);
+        padding: 25px 30px;
+        border-radius: 20px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 9999;
+
+    }
+
+.close {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 25px;
+    cursor: pointer;
+}
+
+.close:hover,
+.close:focus {
+    color: rgb(211, 49, 49);
+    cursor: pointer;
+}
+
+
 </style>
 
 <div class="modal-content">

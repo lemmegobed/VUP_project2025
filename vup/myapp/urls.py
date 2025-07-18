@@ -55,7 +55,7 @@ urlpatterns = [
     # path('filter/', filter_events, name='filter_events'),
     
     path('logout/', logout_view, name='logout'),
-
+    path('verify-id/', upload_identity, name='verify_id'),
 
 
     path('reset_password/', auth_views.PasswordResetView.as_view(template_name='reset_password/reset_password.html'), name='reset_password'),
@@ -63,6 +63,9 @@ urlpatterns = [
     path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(template_name='reset_password/confirm_password_reset.html'), name='password_reset_confirm'),
     path('reset_password_complete/', auth_views.PasswordResetCompleteView.as_view(template_name='reset_password/complete_password_reset.html'), name='password_reset_complete'),
 
+    path('google-calendar-auth/', google_calendar_auth, name='google_calendar_auth'),
+    path('oauth2callback/', oauth2callback, name='oauth2callback'),
+    path('calendar-events/', get_google_calendar_events, name='get_google_calendar_events'),
 ]
 
 

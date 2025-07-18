@@ -48,11 +48,43 @@
     </div>
 
     <div class="outer-box-profile">
-        <div class="profile-header">
-            <i class="fa-regular fa-circle-user"></i>
-            <p class="my_profile_head">โปรไฟล์ของฉัน</p>
+        <div class="header">
+            <div class="profile-header-bar">
+                <div class="profile-header">
+                    <i class="fa-regular fa-circle-user"></i>
+                    <p class="my_profile_head">โปรไฟล์ของฉัน</p>
+                </div>
+
+                <div class="upload_verify_id">
+                    {% if request.user.identityverification %}
+                        {% if request.user.identityverification.status == 'pending' %}
+                            <button class="btn-disabled w-100" disabled>
+                                <i class="fa-solid fa-clock"></i> อยู่ระหว่างตรวจสอบเอกสาร
+                            </button>
+                        {% elif request.user.identityverification.status == 'approved' %}
+                            <button class="btn-disabled" disabled>
+                                <i class="fa-solid fa-circle-check"></i> ยืนยันตัวตนแล้ว
+                            </button>
+                        {% elif request.user.identityverification.status == 'rejected' %}
+                            <a href="{% url 'verify_id' %}" class="btn btn-danger">
+                                <i class="fa-solid fa-rotate-left"></i> ส่งเอกสารใหม่
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        <a href="{% url 'verify_id' %}" class="btn btn-primary">
+                            <i class="fa-solid fa-triangle-exclamation"></i> กรุณายืนยันตัวตน
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+        <!-- เข้าร่วมมาแล้ว: {{ member.date_joined|timesince }}  -->
+
         </div>
-               
+              
+        
+
+
         <div class="inner-box">
             <div class="box-profile-show">
                 
@@ -151,7 +183,8 @@
                         <p><strong>เพศ :</strong> {{ user.sex }}</p>
                         <p><strong>วันเกิด :</strong> {{ user.birthdate }}</p>
                     </div>
-    
+
+
                 </div>
             </div>
 
@@ -284,11 +317,28 @@
                     <label class="profile-label">คำอธิบาย</label>
                     <input name="description" class="form-control" type="text" value="{{ form.description.value }}">
                 </div>
+
+                <!-- <div class="profile-group">
+                <label class="profile-label">Facebook</label>
+                    <input name="facebook" class="form-control" type="text" value="{{ form.facebook.value }}">
+                </div>
+
+                <div class="profile-group">
+                    <label class="profile-label">Instagram</label>
+                    <input name="instagram" class="form-control" type="text" value="{{ form.instagram.value }}">
+                </div>
+
+                <div class="profile-group">
+                    <label class="profile-label">LINE ID</label>
+                    <input name="line_id" class="form-control" type="text" value="{{ form.line_id.value }}">
+                </div> -->
+
     
                 <input type="hidden" name="update_profile" value="true">
                 <div class="profile-footer">
                     <button type="submit" class="profile-btn profile-btn-primary">บันทึก</button>
                 </div>
+                
             </form>
         </div>
     </div>
@@ -318,6 +368,11 @@
     
                 <div class="form-group">
                     <label class="edit-event-label">วันที่ทำกิจกรรม :</label>
+                    <input class="edit-event-input" type="datetime-local" name="event_datetime" value="{{ event.event_datetime|date:'Y-m-d\TH:i' }}" required>
+                </div>
+
+                                <div class="form-group">
+                    <label class="edit-event-label">วันที่สิ้นสุดกิจกรรม :</label>
                     <input class="edit-event-input" type="datetime-local" name="event_datetime" value="{{ event.event_datetime|date:'Y-m-d\TH:i' }}" required>
                 </div>
     
